@@ -1,0 +1,26 @@
+[Unit]
+Description=UNI Whale Tracker - cap nhat du lieu va cham diem lai
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=@APP_USER@
+WorkingDirectory=@APP_DIR@
+EnvironmentFile=/etc/whaletracker.env
+# Bo qua dao sau tung vi o lan chay dinh ky cho nhanh; du lieu moi van duoc quet day du.
+ExecStart=@APP_DIR@/venv/bin/python -u -m wt backfill --skip-deep
+ExecStart=@APP_DIR@/venv/bin/python -u -m wt classify
+ExecStart=@APP_DIR@/venv/bin/python -u -m wt ledger
+ExecStart=@APP_DIR@/venv/bin/python -u -m wt score
+ExecStart=@APP_DIR@/venv/bin/python -u -m wt report
+TimeoutStartSec=7200
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=@APP_DIR@/data @APP_DIR@/out
+
+[Install]
+WantedBy=multi-user.target

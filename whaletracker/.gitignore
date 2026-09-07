@@ -1,0 +1,13 @@
+# Du lieu va ket qua - tai tao duoc bang `python -m wt all`
+data/
+out/
+
+# Bi mat - KHONG BAO GIO commit
+*.env
+whaletracker.env
+config.local.json
+
+__pycache__/
+*.py[cod]
+venv/
+.venv/

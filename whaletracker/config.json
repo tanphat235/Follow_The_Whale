@@ -1,0 +1,101 @@
+{
+  "_comment": "UNI Whale Tracker config. Moi gia tri deu co the ghi de bang bien moi truong WT_<TEN_HOA>, vi du WT_TELEGRAM_TOKEN.",
+  "token": {
+    "symbol": "UNI",
+    "contract": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+    "decimals": 18,
+    "price_pair": "UNIUSDT"
+  },
+  "window": {
+    "since": "2026-04-01",
+    "until": "now",
+    "_note": "Chu ky 2026: day 06-05 $2.316 | fake-out 06-17 | markup 07-02 | dinh cuc bo 07-31 $4.577 | DAY DIEU CHINH 08-14 $3.171 | breakout 08-19 | xung luc 08-30 | DINH 09-06 $7.483"
+  },
+  "milestones": {
+    "cycle_low": {
+      "date": "2026-06-05",
+      "price": 2.316,
+      "label": "Day chu ky"
+    },
+    "fakeout_top": {
+      "date": "2026-06-17",
+      "price": 3.729,
+      "label": "Fake-out quet thanh khoan (vol 26.7M)"
+    },
+    "markup_start": {
+      "date": "2026-07-02",
+      "price": 3.291,
+      "label": "Bat dau markup (gap +18%)"
+    },
+    "local_top": {
+      "date": "2026-07-31",
+      "price": 4.577,
+      "label": "Dinh cuc bo - ngay CSV cua ban"
+    },
+    "correction_low": {
+      "date": "2026-08-14",
+      "price": 3.171,
+      "label": "Day dieu chinh - vung ban vao $3.3"
+    },
+    "breakout": {
+      "date": "2026-08-19",
+      "price": 3.761,
+      "label": "Breakout khoi nen (vol 7.35M)"
+    },
+    "impulse": {
+      "date": "2026-08-30",
+      "price": 5.492,
+      "label": "Xung luc manh +18% (vol 15.05M)"
+    },
+    "cycle_top": {
+      "date": "2026-09-06",
+      "price": 7.483,
+      "label": "DINH CHU KY hien tai"
+    }
+  },
+  "thresholds": {
+    "whale_min_volume_uni": 25000,
+    "deep_dive_top_n": 200,
+    "mm_net_ratio_max": 0.05,
+    "mm_min_transfers": 100,
+    "mm_min_hour_coverage": 0.6,
+    "dex_pool_min_counterparties": 200,
+    "mev_same_block_ratio": 0.7,
+    "cluster_net_tolerance": 0.02,
+    "ledger_min_volume_uni": 2500
+  },
+  "http": {
+    "rate_limit_per_sec": 1.5,
+    "max_retries": 8,
+    "timeout_sec": 45,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+  },
+  "sources": {
+    "blockscout_base": "https://eth.blockscout.com",
+    "etherscan_key": "",
+    "etherscan_base": "https://api.etherscan.io/v2/api",
+    "etherscan_chainid": 1
+  },
+  "monitor": {
+    "poll_sec": 45,
+    "min_score_to_watch": 2.2,
+    "alert_usd_min": 25000,
+    "heartbeat_hour_utc": 1,
+    "_note_min_score": "Da do tren du lieu that 2026-04..08: KHONG vi nao dat 3.0 vi giai doan gom hang o day thang 6 dien ra TRONG SAN (on-chain chi thay 'rut tu CEX', khong thay gia mua) -> gia von khong xac minh duoc va bi tru diem. 2.2 la nguong huu dung thuc te. De 3.0 thi watchlist rong."
+  },
+  "alerts": {
+    "email": {
+      "enabled": false,
+      "smtp_host": "smtp.gmail.com",
+      "smtp_port": 587,
+      "username": "",
+      "app_password": "",
+      "to": ""
+    },
+    "telegram": {
+      "enabled": false,
+      "bot_token": "",
+      "chat_id": ""
+    }
+  }
+}

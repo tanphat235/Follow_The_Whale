@@ -1,0 +1,25 @@
+[Unit]
+Description=UNI Whale Tracker - theo doi vi whale va gui canh bao
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@APP_USER@
+WorkingDirectory=@APP_DIR@
+EnvironmentFile=/etc/whaletracker.env
+ExecStart=@APP_DIR@/venv/bin/python -u -m wt monitor
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+# Gioi han quyen - tool chi can ghi vao thu muc cua chinh no
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=@APP_DIR@/data @APP_DIR@/out
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=Chay lai phan tich va cham diem whale moi 6 tieng
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=6h
+# Lech ngau nhien de khong dap vao API dung cung mot thoi diem moi lan
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
