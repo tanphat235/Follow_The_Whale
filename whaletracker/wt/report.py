@@ -311,6 +311,7 @@ def build_html(cfg, conn, whales, mms, stats, entry_price=None) -> str:
     plan_html = rs.plan_section(conn, price_now, entry, lv)
     stance_html = rs.stance_section(conn, cfg, since_ts, price_now, contract, _addr_link)
     signals_html = rs.signals_section(conn, price_now, since_ts)
+    resist_html = rs.resistance_section(conn, price_now, entry)
     hero_html = rs.hero(conn, price_now, entry, cfg.milestone_items())
 
     trunc = stats.get("truncated", 0)
@@ -348,6 +349,9 @@ Khong dung AI &middot; Khong dung API key tra phi.</p>
 <p class="sub" style="margin:-4px 0 10px">Tinh tu {stance_from} den nay &mdash; giai doan gia
 chay tu day len dinh. Day la cau tra loi cho cau hoi "ho mua tiep, xa, hay van giu".</p>
 {stance_html}
+
+<h2>Vung khang cu &mdash; gia se vap phai gi o phia tren</h2>
+{resist_html}
 
 <h2>Gia con tang duoc nua khong &mdash; can theo chi so</h2>
 <p class="sub" style="margin:-4px 0 10px">Moi chi so la mot phep dem tren du lieu that, co kem

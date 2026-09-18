@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import html
 
-from . import config, market, signals
+from . import config, market, resistance, signals
 
 _STANCE_CLASS = {"MUA THEM": "st-buy", "XA": "st-sell",
                  "HOLD": "st-hold", "THOAT HET": "st-out"}
@@ -167,3 +167,82 @@ def plan_section(conn, price_now, entry_price, lv) -> str:
   <p class="sub" style="margin:6px 0 0">Ban dang lai <b>{gain:+.0%}</b> tren toan bo danh muc.
   Toan bo von nam trong mot tai san duy nhat.</p>
 </div>"""
+
+
+# ---------------- 5. Khang cu / ho tro ----------------
+
+def resistance_section(conn, price_now, entry_price) -> str:
+    """Ba phuong phap doc lap: volume profile, dinh dao chieu, thong ke lich su."""
+    vp = resistance.volume_profile(conn, price_now)
+    sw = resistance.swing_levels(conn, price_now)
+    st = resistance.stretch_study(conn)
+    cur = resistance.current_stretch(conn, price_now)
+
+    if not vp:
+        return ("<p class='muted'>Chua co du lieu nen ngay dai han. "
+                "Chay <code>python -m wt report</code> lai sau khi backfill.</p>")
+
+    vp_rows = "".join(f"""
+<tr><td style="text-align:left"><b>${v['lo']:.1f} &ndash; ${v['hi']:.1f}</b></td>
+  <td>{v['volume'] / 1e6:,.0f}M UNI</td>
+  <td>{v['gap']:+.1%}</td>
+  <td><span class="btrack" style="display:inline-block;width:150px;vertical-align:middle">
+      <i style="width:{v['strength'] * 100:.0f}%"></i></span></td></tr>""" for v in vp)
+
+    hi_chips = "".join(
+        f"<div><b>${h['price']:.2f}</b><br>{h['gap']:+.0%}</div>" for h in sw["highs"][:7])
+
+    # Day cua song HIEN TAI (2026) khac voi ho tro lich su tu cac nam truoc.
+    recent_lows = [l for l in sw["lows"] if l["ts"] >= config.parse_when("2026-06-01")]
+    lo_chips = "".join(
+        f"<div><b>${l['price']:.2f}</b><br>{l['gap']:+.0%} &middot; {config.fmt_ts(l['ts'], False)[5:]}</div>"
+        for l in recent_lows[:4]) or "<div class='muted'>khong co day nao trong song hien tai</div>"
+
+    st_html = ""
+    if st:
+        ev_rows = "".join(f"""
+<tr><td style="text-align:left">{config.fmt_ts(e['ts'], False)}</td>
+  <td>{e['gap']:+.0%}</td>
+  <td class="{'pos' if e['fwd7'] >= 0 else 'neg'}">{e['fwd7']:+.0%}</td>
+  <td class="{'pos' if e['fwd30'] >= 0 else 'neg'}">{e['fwd30']:+.0%}</td>
+  <td class="pos">{e['best']:+.0%}</td>
+  <td class="neg">{e['worst']:+.0%}</td></tr>"""
+            for e in sorted(st["events"], key=lambda x: x["ts"]))
+        st_html = f"""
+<h3 style="font-size:15px;margin:26px 0 8px">Lich su: khi UNI vuot MA20 tren +40% thi sau do ra sao</h3>
+<p class="sub" style="margin:0 0 10px">Hien tai gia vuot MA20 <b>{cur.get('gap20', 0):+.1%}</b>.
+Da xay ra <b>{st['n']} lan</b> tuong tu trong 6 nam.</p>
+<div class="hero">
+  <div class="card kpi"><div class="v">{st['med_fwd7']:+.1%}</div><div class="k">trung vi sau 7 ngay</div></div>
+  <div class="card kpi"><div class="v">{st['med_fwd30']:+.1%}</div><div class="k">trung vi sau 30 ngay</div></div>
+  <div class="card kpi"><div class="v">{st['n_up']}/{st['n']}</div><div class="k">so lan con tang sau 30 ngay</div></div>
+  <div class="card kpi"><div class="v" style="color:var(--neg)">{st['med_worst']:+.1%}</div>
+      <div class="k">trung vi muc sut sau nhat trong 30 ngay</div></div>
+</div>
+<div class="card scroll" style="margin-top:12px"><table style="min-width:620px">
+<thead><tr><th style="text-align:left">Ngay</th><th>Vuot MA20</th><th>Sau 7 ngay</th>
+<th>Sau 30 ngay</th><th>Cao nhat</th><th>Thap nhat</th></tr></thead>
+<tbody>{ev_rows}</tbody></table></div>
+<div class="card warn" style="margin-top:12px">Phan bo nay <b>luong cuc</b>: hoac bung no tiep,
+hoac la dinh cuc bo - gan nhu khong co truong hop o giua. Nghia la khong the du doan huong.
+Nhung co mot dieu gan nhu chac chan: <b>moi lan deu co nhip sut trong 30 ngay sau do</b>.
+Do la ly do de CHIA NHO ma chot thay vi doan mot lan.</div>"""
+
+    return f"""
+<div class="card">
+  <p class="sub" style="margin:0 0 10px"><b>Vung gia co nhieu hang da sang tay nhat, nam tren gia hien tai.</b>
+  Nguoi mua o do dang ket von - ho ban ra khi gia ve hoa von, tao nguon cung treo lo lung.</p>
+  <div class="scroll"><table style="min-width:560px">
+  <thead><tr><th style="text-align:left">Vung gia</th><th>Khoi luong</th>
+  <th>Cach gia nay</th><th>Do can</th></tr></thead>
+  <tbody>{vp_rows}</tbody></table></div>
+</div>
+
+<h3 style="font-size:15px;margin:26px 0 8px">Dinh dao chieu phia tren (noi gia da tung quay dau)</h3>
+<div class="card"><div class="lvl">{hi_chips}</div></div>
+
+<h3 style="font-size:15px;margin:26px 0 8px">Day cua song hien tai (moc pha vo cau truc tang)</h3>
+<div class="card"><div class="lvl">{lo_chips}</div>
+<p class="sub" style="margin:8px 0 0">Cac muc ho tro $6-8 trong lich su la tu nam 2024-2025,
+khong phai cau truc cua song nay - dung nham lan hai loai.</p></div>
+{st_html}"""

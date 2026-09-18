@@ -151,6 +151,15 @@ CREATE TABLE IF NOT EXISTS meta (
     value TEXT
 );
 
+-- Nen NGAY dai han (nhieu nam) - chi dung de tim vung khang cu/ho tro.
+-- Tach khoi bang `prices` (nen 1 phut) vi giu 3 nam nen 1m se la 1.5 trieu dong
+-- trong khi phan tich khang cu chi can do phan giai ngay.
+CREATE TABLE IF NOT EXISTS prices_daily (
+    ts     INTEGER PRIMARY KEY,
+    open   REAL, high REAL, low REAL, close REAL, volume REAL,
+    src    TEXT
+);
+
 -- Block ma ca 3 tang lay du lieu deu that bai. Bao cao ra, KHONG am tham bo qua.
 CREATE TABLE IF NOT EXISTS truncated_blocks (
     block_number INTEGER PRIMARY KEY,
@@ -220,6 +229,12 @@ def upsert_transfers(conn, rows: Iterable[Sequence]) -> int:
 
 def upsert_blocks(conn, rows: Iterable[Sequence]) -> None:
     conn.executemany("INSERT OR REPLACE INTO blocks(number,ts) VALUES(?,?)", list(rows))
+
+
+def upsert_prices_daily(conn, rows: Iterable[Sequence]) -> None:
+    conn.executemany(
+        "INSERT OR REPLACE INTO prices_daily(ts,open,high,low,close,volume,src)"
+        " VALUES(?,?,?,?,?,?,?)", list(rows))
 
 
 def upsert_prices(conn, rows: Iterable[Sequence]) -> None:
