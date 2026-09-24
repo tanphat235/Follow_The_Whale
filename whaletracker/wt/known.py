@@ -57,6 +57,19 @@ FIXED = {
     "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad": "router",    # Universal Router
     "0x000000000022d473030f116ddee9f6b43ac78ba3": "router",    # Permit2
     "0x9008d19f58aabd9ed0d60971565aa8510560ab41": "router",    # CoW GPv2Settlement
+    # Vi kho lanh / vi nong cua san. Blockscout KHONG co nametag cho chung, nen neu
+    # khong liet ke o day thi chung bi xep nham la "whale_candidate" va keo theo ca
+    # cac vi trung chuyen cua san cung bi xep nham (da gap that: 0x5a52e96bac chuyen
+    # 2 trieu UNI Binance-lanh -> Binance-nong, suyt bi bao la whale xa hang).
+    "0xf977814e90da44bfa03b6295a0616a897441acec": "cex",  # Binance 8 (kho lanh)
+    "0x28c6c06298d514db089934071355e5743bf21d60": "cex",  # Binance 14
+    "0x21a31ee1afc51d94c2efccaa2092ad1028285549": "cex",  # Binance 15
+    "0xdfd5293d8e347dfe59e90efd55b2956a1343963d": "cex",  # Binance 16
+    "0x56eddb7aa87536c09ccc2793473599fd21a8b17f": "cex",  # Binance 17
+    "0x9696f59e4d72e237be84ffd425dcad154bf96976": "cex",  # Binance 18
+    "0x4976a4a02f38326660d17bf34b431dc6e2eb2327": "cex",  # Binance 19
+    "0xd88b55467f58af508dbfdc597e8ebd2ad2de49b3": "cex",  # Binance 20
+    "0x5a52e96bacdabb82fd05763e25335261b270efcb": "cex",  # Binance (vi trung chuyen)
 }
 
 GROUPS = (

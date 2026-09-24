@@ -265,6 +265,9 @@ border-radius:9px;margin:6px 0;white-space:normal}
 .legend{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin-top:10px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:99px;margin-right:5px;vertical-align:middle}
 .warn{border-left:3px solid var(--s-c);padding-left:15px;margin:10px 0}
+.stamp{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12.5px;color:var(--fg);
+background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid var(--line);
+border-radius:9px;padding:10px 14px;margin:0 0 24px}
 .hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0}
 .hero .v{font-size:26px;font-weight:680;letter-spacing:-.02em}
 .hero .k{color:var(--muted);font-size:12px;margin-top:3px}
@@ -314,6 +317,11 @@ def build_html(cfg, conn, whales, mms, stats, entry_price=None) -> str:
     resist_html = rs.resistance_section(conn, price_now, entry)
     hero_html = rs.hero(conn, price_now, entry, cfg.milestone_items())
 
+    _pr = conn.execute("SELECT MAX(ts) mx FROM prices").fetchone()
+    _ch = conn.execute("SELECT MAX(ts) mx FROM transfers").fetchone()
+    price_until = config.fmt_ts(_pr["mx"]) if _pr and _pr["mx"] else "-"
+    chain_until = config.fmt_ts(_ch["mx"]) if _ch and _ch["mx"] else "-"
+
     trunc = stats.get("truncated", 0)
     warn = ""
     if trunc:
@@ -323,13 +331,24 @@ def build_html(cfg, conn, whales, mms, stats, entry_price=None) -> str:
     return f"""<!doctype html>
 <html lang="vi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Bao cao duoc ghi de len cung mot duong dan moi lan chay. Trinh duyet cache file://
+     rat manh, nen neu khong chan thi ban se xem phai bao cao cu ma khong biet
+     (da xay ra that: bieu do dung o 09-18 trong khi file da cap nhat den 09-23). -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>UNI Whale Tracker</title><style>{CSS}</style></head><body><div class="wrap">
 
 <h1>UNI Whale Tracker</h1>
 <p class="sub">Truy vet vi tich gop day &rarr; xa dinh cho chu ky
 {config.fmt_ts(cfg.since_ts(), False)} &rarr; {config.fmt_ts(cfg.until_ts(), False)}.
-Tao luc {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC.
 Khong dung AI &middot; Khong dung API key tra phi.</p>
+<div class="stamp">
+  <span><b>Bao cao tao luc</b> {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC</span>
+  <span><b>Gia den</b> {price_until}</span>
+  <span><b>On-chain den</b> {chain_until}</span>
+  <span class="muted">Neu moc nay cu hon ban mong doi &rarr; bam Ctrl+F5 de nap lai</span>
+</div>
 
 {hero_html}
 

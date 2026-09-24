@@ -213,19 +213,36 @@ def reclass_cex_shuttles(conn, results: dict[str, tuple], stats: dict) -> int:
                 slot[0] += r["amount"]
 
     n = 0
+
+    # --- Luat 1: dong tien gan nhu chi di qua CEX ---
     for addr, (klass, _) in list(results.items()):
         if klass != "whale_candidate":
             continue
         via_cex, total = flows.get(addr, (0.0, 0.0))
-        s = stats.get(addr) or {}
-        if total <= 0 or s.get("n_tx", 0) < 20:
+        st = stats.get(addr) or {}
+        if total <= 0 or st.get("n_tx", 0) < 20:
             continue
         cex_ratio = via_cex / total
-        conviction = s.get("net_ratio", 1.0)
+        conviction = st.get("net_ratio", 1.0)
         if cex_ratio >= 0.90 and conviction < 0.15:
             results[addr] = ("cex_shuttle",
                              f"{cex_ratio:.0%} dong tien chi qua CEX, do dut khoat chi "
                              f"{conviction:.0%} -> vi van hanh cua san, khong phai nguoi dat cuoc gia")
+            n += 1
+
+    # --- Luat 2: volume khong lo nhung chi giao dich voi vai dia chi ---
+    # Nguoi giao dich that phai cham pool/router/nhieu doi tac. Mot dia chi luan chuyen
+    # hang chuc trieu UNI ma chi qua lai voi 2-3 dia chi la DUONG ONG cua san, khong phai trader.
+    # Da gap that: 0x5a52e96bac luan chuyen 73 trieu UNI qua dung 2 dia chi
+    # (Binance kho lanh -> Binance vi nong) va suyt bi bao nham la "whale xa 2 trieu UNI".
+    for addr, (klass, _) in list(results.items()):
+        if klass != "whale_candidate":
+            continue
+        st = stats.get(addr) or {}
+        if st.get("gross", 0) >= 5_000_000 and 0 < st.get("n_cp", 99) <= 3:
+            results[addr] = ("cex_shuttle",
+                             f"luan chuyen {st['gross']:,.0f} UNI nhung chi qua {st['n_cp']} dia chi "
+                             f"-> duong ong noi bo cua san, khong phai nguoi giao dich")
             n += 1
     return n
 
