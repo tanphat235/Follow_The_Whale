@@ -79,7 +79,24 @@ def bulk_logs(cfg, conn, client, bs, verbose=True, dry_run=False) -> dict:
 
     for i, (lo, hi) in enumerate(todo, 1):
         buf, blocks, addrs = [], {}, set()
-        for batch in bs.sweep(cfg.contract, lo, hi, chunk=CHUNK, on_truncated=note_truncated):
+        # Blockscout can het han ngach theo IP (429 o moi toc do). Truoc day tien trinh CHET
+        # sau 8 lan thu, mat het tien do cho den lan chay tay ke tiep. Gio nghi dai roi thu lai
+        # DUNG chunk do: chunk chi duoc danh dau xong sau khi thanh cong nen khong mat/lap du lieu.
+        attempt = 0
+        while True:
+            try:
+                batches = list(bs.sweep(cfg.contract, lo, hi, chunk=CHUNK,
+                                        on_truncated=note_truncated))
+                break
+            except RuntimeError as exc:
+                attempt += 1
+                if "429" not in str(exc) or attempt > 30:
+                    raise
+                if verbose:
+                    print(f"  [bulk] het han ngach (429), nghi 180s roi thu lai chunk {lo} "
+                          f"(lan {attempt}/30)", flush=True)
+                time.sleep(180)
+        for batch in batches:
             for t in batch:
                 if not t["tx_hash"] or t["log_index"] is None:
                     continue

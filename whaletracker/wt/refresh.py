@@ -30,10 +30,24 @@ def pick_wallets(conn, cfg, top_n: int, min_score: float) -> list[str]:
             if r["wallet"] not in seen:
                 seen.add(r["wallet"])
                 out.append(r["wallet"])
-    return out[:top_n]
+    out = out[:top_n]
+    # Market Maker luon duoc cap nhat: neu bo, khong the tra loi "MM dang gom hay xa".
+    for r in conn.execute("""SELECT wallet FROM wallet_stats WHERE klass='market_maker'
+                             ORDER BY gross_uni DESC LIMIT 30"""):
+        if r["wallet"] not in seen:
+            seen.add(r["wallet"])
+            out.append(r["wallet"])
+    return out
 
 
-def run(cfg, conn, top_n: int = 150, verbose: bool = True) -> dict:
+def mm_wallets(conn, limit: int = 30) -> list[str]:
+    return [r["wallet"] for r in conn.execute(
+        "SELECT wallet FROM wallet_stats WHERE klass='market_maker'"
+        " ORDER BY gross_uni DESC LIMIT ?", (limit,))]
+
+
+def run(cfg, conn, top_n: int = 150, verbose: bool = True,
+        wallets: list[str] | None = None) -> dict:
     client = Client(cfg, verbose=verbose)
     # Routescan la nguon chinh: da do 10 request lien tiep khong bi chan, con
     # Blockscout va Ethplorer deu tra 429 sau vai nghin request/ngay tren cung 1 IP.
@@ -42,7 +56,8 @@ def run(cfg, conn, top_n: int = 150, verbose: bool = True) -> dict:
     contract = cfg.contract
     dec = cfg.decimals
 
-    wallets = pick_wallets(conn, cfg, top_n, float(cfg["monitor"]["min_score_to_watch"]))
+    if wallets is None:
+        wallets = pick_wallets(conn, cfg, top_n, float(cfg["monitor"]["min_score_to_watch"]))
     if verbose:
         print(f"[refresh] cap nhat {len(wallets)} vi qua Ethplorer (freekey, ~1 req/s)")
 

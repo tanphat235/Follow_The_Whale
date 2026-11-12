@@ -9,7 +9,7 @@
   "window": {
     "since": "2026-04-01",
     "until": "now",
-    "_note": "Chu ky 2026: day 06-05 $2.316 | day dieu chinh 08-14 $3.171 | breakout 08-19 | dinh cuc bo 09-06 $7.483 | dieu chinh 09-10 $5.806 | DINH 09-23 $10.942"
+    "_note": "Chu ky 2026: day 06-05 $2.316 | day dieu chinh 08-14 $3.171 | DINH 09-23 $10.942 | di ngang 6.5-7.8 tu 10-13 | PHA DAY vung di ngang 11-11 $6.217"
   },
   "milestones": {
     "cycle_low": {
@@ -51,6 +51,21 @@
       "date": "2026-09-23",
       "price": 9.033,
       "label": "Day cu sap 23/09"
+    },
+    "break_oct": {
+      "date": "2026-10-06",
+      "price": 8.562,
+      "label": "Gay ho tro $8.77"
+    },
+    "range_low_oct": {
+      "date": "2026-10-13",
+      "price": 6.742,
+      "label": "Day vung di ngang"
+    },
+    "break_range": {
+      "date": "2026-11-11",
+      "price": 6.217,
+      "label": "Pha day vung di ngang"
     }
   },
   "thresholds": {

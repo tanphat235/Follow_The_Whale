@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import html
 
-from . import config, market, resistance, signals
+from . import btc, config, market, resistance, signals
 
 _STANCE_CLASS = {"MUA THEM": "st-buy", "XA": "st-sell",
                  "HOLD": "st-hold", "THOAT HET": "st-out"}
@@ -246,3 +246,71 @@ Do la ly do de CHIA NHO ma chot thay vi doan mot lan.</div>"""
 <p class="sub" style="margin:8px 0 0">Cac muc ho tro $6-8 trong lich su la tu nam 2024-2025,
 khong phai cau truc cua song nay - dung nham lan hai loai.</p></div>
 {st_html}"""
+
+
+# ---------------- 6. BTC - thi truong chung ----------------
+
+def btc_section(uni_price) -> str:
+    """BTC co phai diem vao tot khong. Lay du lieu luc tao bao cao, loi mang thi bao ro."""
+    try:
+        st = btc.analyze()
+    except Exception as exc:  # mat mang / Binance chan -> khong bao cao so lieu cu nhu so moi
+        return (f"<p class='muted'>Khong lay duoc du lieu BTC luc tao bao cao "
+                f"({html.escape(type(exc).__name__)}). Chay lai khi co mang.</p>")
+    if not st:
+        return "<p class='muted'>Chua du lich su BTC de tinh chi so.</p>"
+
+    px, ma = st["price"], st["ma"]
+    an = st["analog"]
+    ratio = (uni_price / px * 1e6) if uni_price else None
+    cells = [
+        (f"${px:,.0f}", f"BTC hien tai ({config.fmt_ts(st['ts'], False)})"),
+        (f"{px / st['ath'] - 1:+.1%}", f"So voi ATH ${st['ath']:,.0f}"),
+        (f"{px / ma[200] - 1:+.1%}", f"So voi MA200 ${ma[200]:,.0f}"),
+        (f"{st['rsi']:.0f}", "RSI 14 ngay"),
+    ]
+    hero = '<div class="hero">' + "".join(
+        f'<div class="card kpi"><div class="v">{html.escape(v)}</div>'
+        f'<div class="k">{html.escape(k)}</div></div>' for v, k in cells) + "</div>"
+
+    rows = "".join(
+        f"<tr><td style='text-align:left'>{lbl}</td><td>{val}</td></tr>" for lbl, val in [
+            ("Loi nhuan 7 / 14 / 30 / 90 ngay",
+             " / ".join(f"{st['ret'][k]:+.1%}" for k in (7, 14, 30, 90))),
+            ("MA20 / MA50 / MA100",
+             " / ".join(f"${ma[k]:,.0f} ({px / ma[k] - 1:+.1%})" for k in (20, 50, 100))),
+            ("MA50 dang", "doc xuong" if st["ma50_slope"] < 0 else "doc len"),
+            ("MA200 dang", f"{'doc len' if st['ma200_slope'] > 0 else 'doc xuong'} ({st['ma200_slope']:+.1%}/20 ngay)"),
+            ("Bien do 90 ngay", f"${st['l90']:,.0f} - ${st['h90']:,.0f} (gia o {st['pos90']:.0%})"),
+            ("ATR 14 ngay (bien dong trung binh/ngay)", f"${st['atr']:,.0f} ({st['atr'] / px:.1%})"),
+            ("Ty gia UNI/BTC (x1e-6)", f"{ratio:.1f}" if ratio else "-"),
+        ])
+
+    if an["n"]:
+        ev = "".join(
+            f"<tr><td style='text-align:left'>{config.fmt_ts(e['ts'], False)}</td>"
+            f"<td class=\"{'pos' if e['fwd'] >= 0 else 'neg'}\">{e['fwd']:+.1%}</td>"
+            f"<td class='neg'>{e['worst']:+.1%}</td><td class='pos'>{e['best']:+.1%}</td></tr>"
+            for e in an["events"][-8:])
+        analog = f"""
+<h3 style="font-size:15px;margin:26px 0 8px">Lich su: khi BTC o trang thai giong hien tai thi 30 ngay sau ra sao</h3>
+<p class="sub" style="margin:0 0 10px">Khop dong thoi 6 dieu kien (RSI, khoang cach MA50, khoang cach dinh 90 ngay,
+tren/duoi MA200, MA20, MA50). Tim thay <b>{an['n']} lan</b> (cach nhau &ge;10 ngay).</p>
+<div class="hero">
+  <div class="card kpi"><div class="v">{an['med']:+.1%}</div><div class="k">trung vi sau 30 ngay<br>(co so moi ngay: {an['base_med']:+.1%})</div></div>
+  <div class="card kpi"><div class="v">{an['up']}/{an['n']}</div><div class="k">so lan con tang<br>(co so: {an['base_up']:.0%})</div></div>
+  <div class="card kpi"><div class="v" style="color:var(--neg)">{an['med_worst']:+.1%}</div><div class="k">trung vi muc sut sau nhat trong 30 ngay</div></div>
+  <div class="card kpi"><div class="v" style="color:var(--pos)">{an['med_best']:+.1%}</div><div class="k">trung vi muc cao nhat cham trong 30 ngay</div></div>
+</div>
+<div class="card scroll" style="margin-top:12px"><table style="min-width:520px">
+<thead><tr><th style="text-align:left">Ngay</th><th>Sau 30 ngay</th><th>Sut sau nhat</th><th>Cao nhat</th></tr></thead>
+<tbody>{ev}</tbody></table></div>"""
+    else:
+        analog = "<p class='muted'>Khong tim thay trang thai tuong tu trong lich su.</p>"
+
+    return f"""
+{hero}
+<div class="card scroll"><table style="min-width:520px"><tbody>{rows}</tbody></table></div>
+{analog}
+<div class="card warn" style="margin-top:12px">Day la do trang thai, <b>khong phai du bao</b>. Mau tuong tu nho
+(vai chuc lan, nhieu lan nam chung 1 chu ky), nen chi nen coi la tham khao ve phan bo ket qua.</div>"""
